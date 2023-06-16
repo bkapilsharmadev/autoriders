@@ -231,19 +231,21 @@
 
                 <div class="trip-types d-flex justify-content-center">
                     <div class="form-check trip-type">
-                        <input class="form-check-input" type="radio" name="trip-type" id="trip-one-way" checked>
+                        <input class="form-check-input" value="one-way" type="radio" name="trip-type" id="trip-one-way"
+                            checked>
                         <label class="form-check-label" for="trip-one-way">
                             One Way
                         </label>
                     </div>
                     <div class="form-check trip-type">
-                        <input class="form-check-input" type="radio" name="trip-type" id="trip-round">
+                        <input class="form-check-input" value="round-trip" type="radio" name="trip-type"
+                            id="trip-round">
                         <label class="form-check-label" for="trip-round">
                             Round Trip
                         </label>
                     </div>
                     <div class="form-check trip-type">
-                        <input class="form-check-input" type="radio" name="trip-type" id="trip-rental">
+                        <input class="form-check-input" value="rental" type="radio" name="trip-type" id="trip-rental">
                         <label class="form-check-label" for="trip-rental">
                             Rental
                         </label>
@@ -281,25 +283,26 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="search-input departure-time">
                         <label>DEPARTURE</label>
-                        <h4>20 Jun'23</h4>
-                        <p><span>PICK UP: </span> Tue, 7:30 AM</p>
+                        <h4 class="date">20 Jun'23</h4>
+                        <p><span>PICK UP: </span> <span class="day">Tue</span>, <span class="time">7:30 AM</span></p>
 
-                        <div class="auto-custom-select d-none" id="select-from-city">
-                            <input class="search-box" type="date">
-                            <input class="search-box" type="time">
+                        <div class="auto-custom-select d-none" id="select-departure-time">
+                            <input class="search-box date" type="date">
+                            <input class="search-box time" type="time">
                         </div>
-
                     </div>
-                    <div class="search-input return-time">
-                        <label>RETURN</label>
-                        <h4>20 Jun'23</h4>
-                        <p><span>PICK UP: </span> Tue, 11:30 PM</p>
 
-                        <div class="auto-custom-select d-none" id="select-from-city">
-                            <input class="search-box" type="date">
-                            <input class="search-box" type="time">
+                    <div class="search-input return-time d-none">
+                        <label>RETURN</label>
+                        <h4 class="date">20 Jun'23</h4>
+                        <p><span>DROP: </span> <span class="day">Tue</span>, <span class="time">7:30 AM</span></p>
+
+                        <div class="auto-custom-select d-none" id="select-return-time">
+                            <input class="search-box date" type="date">
+                            <input class="search-box time" type="time">
                         </div>
                     </div>
                 </div>
@@ -1114,12 +1117,9 @@
 
         document.querySelector('#auto-m-banner .search-inputs').addEventListener('input', function (event) {
             console.log('Hello');
-            if (event.target.classList.contains('search-box')) {
+            if (event.target.classList.contains('search-box') && event.target.getAttribute('type') == 'search' ) {
                 const searchTerm = event.target.value.toLowerCase();
-                console.log('searchTerm>>> ', event.target.nextElementSibling)
                 const listItems = event.target.nextElementSibling.querySelectorAll('.list-item');
-
-                console.log('listItems>>> ', listItems)
 
                 listItems.forEach(function (item) {
                     const itemText = item.innerText.toLowerCase();
@@ -1183,22 +1183,100 @@
             });
         });
 
-        document.querySelector('#auto-m-banner .search-wrapper .switch-destination').addEventListener('click', function () {
+        document.querySelector('#auto-m-banner .search-wrapper .switch-destination').addEventListener('click',
+            function () {
 
-            console.log('CLICKED');
+                console.log('CLICKED');
 
-            let fromCityElem = document.querySelector('.search-input.from h4');
-            let toCityElem = document.querySelector('.search-input.to h4');
+                let fromCityElem = document.querySelector('.search-input.from h4');
+                let toCityElem = document.querySelector('.search-input.to h4');
 
-            let fromCity = fromCityElem.innerText;
-            let toCity = toCityElem.innerText;
+                let fromCity = fromCityElem.innerText;
+                let toCity = toCityElem.innerText;
 
-            fromCityElem.innerText = toCity;
-            toCityElem.innerText = fromCity;
+                fromCityElem.innerText = toCity;
+                toCityElem.innerText = fromCity;
 
+
+            })
+
+
+
+        $(document).ready(function () {
+            $('.trip-types input').on('change', function () {
+                let tripType = $(this).val();
+                console.log('tripType>>>> ', tripType);
+
+                if ($(this).val() == 'one-way') {
+                    $('.search-input.return-time').addClass('d-none');
+                } else {
+                    $('.search-input.return-time').removeClass('d-none');
+                }
+            })
+        })
+
+        $('.auto-custom-select .date').on('change', function () {
+            console.log('date>>> ', $(this).val())
+
+            let data = getDayNameAndDate($(this).val());
+
+            console.log(data, $(this).closest('.search-input'))
+
+            $(this).closest('.search-input').find('.date').text(data.formattedDate);
+            $(this).closest('.search-input').find('.day').text(data.dayName);
 
         })
 
+        $('.auto-custom-select .time').on('change', function () {
+            console.log('date>>> ', $(this).val())
+
+            let data = get12HoursTime($(this).val());
+
+            $(this).closest('.search-input').find('.time').text(data);
+
+        })
+
+        function getDayNameAndDate(dateInput) {
+            var date = new Date(dateInput);
+
+            // Format day name
+            var dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            var dayName = dayNames[date.getDay()];
+
+            // Format month name
+            var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            var monthName = monthNames[date.getMonth()];
+
+            // Format date
+            var formattedDate = date.getDate() + ' ' + monthName + "'" + date.getFullYear().toString().substr(-2);
+
+            return {
+                dayName: dayName,
+                formattedDate: formattedDate
+            }
+        }
+
+        function get12HoursTime(timeInput) {
+            // Split the time string into hours and minutes
+            var timeParts = timeInput.split(":");
+            var hours = parseInt(timeParts[0]);
+            var minutes = parseInt(timeParts[1]);
+
+            // Determine the AM/PM suffix
+            var suffix = (hours >= 12) ? "PM" : "AM";
+
+            // Adjust the hours to 12-hour format
+            if (hours > 12) {
+                hours -= 12;
+            } else if (hours === 0) {
+                hours = 12;
+            }
+
+            // Construct the formatted time string
+            var formattedTime = hours + ":" + (minutes < 10 ? "0" : "") + minutes + " " + suffix;
+            return formattedTime;
+
+        }
     </script>
 </body>
 
